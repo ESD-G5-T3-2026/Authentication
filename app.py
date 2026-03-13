@@ -4,6 +4,7 @@ import time
 import bcrypt
 
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 from dotenv import load_dotenv
 from supabase import create_client
 
@@ -16,6 +17,13 @@ user = os.environ.get("USER")
 supabase = create_client(url, key)
 
 app = Flask(__name__)
+CORS(
+    app,
+    resources={r"/*": {"origins": "*"}},
+    supports_credentials=True,
+    allow_headers=["Content-Type", "Authorization"],
+    methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+)
 
 
 @app.route('/health')
@@ -83,4 +91,4 @@ def logout():
     return response, 200
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0", port=port)
+    app.run(host="0.0.0.0", port=int(port or 5000))
