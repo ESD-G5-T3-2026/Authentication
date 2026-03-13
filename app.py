@@ -13,7 +13,7 @@ url = os.environ.get("SUPABASE_URL")
 key = os.environ.get("SUPABASE_KEY")
 port = os.environ.get("PORT")
 user = os.environ.get("USER")
-frontend_origins = ["http://localhost:5173"]
+frontend_origins = ["http://localhost:6620"]
 
 supabase = create_client(url, key)
 
