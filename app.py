@@ -85,7 +85,7 @@ def login():
         "value": token,
         "httponly": True,
         "secure": True,
-        "samesite": None,
+        "samesite": "None",
         "max_age": 3600,
         "path": "/",
     }
@@ -97,7 +97,7 @@ def login():
 @app.route("/logout", methods=["POST"])
 def logout():
     response = jsonify({"message": "logged out"})
-    response.delete_cookie("access_token", path="/")
+    response.delete_cookie("access_token", path="/", secure=True, samesite="None")
 
     return response, 200
 
