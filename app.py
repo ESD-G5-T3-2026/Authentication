@@ -62,6 +62,7 @@ def login():
 
     payload = {
         "sub": data.get("email"),
+        "club_id": user_row.get("club_id"),
         "iss": user,
         "exp": int(time.time()) + 3600
     }
