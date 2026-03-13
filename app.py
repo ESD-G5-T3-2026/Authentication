@@ -71,15 +71,17 @@ def login():
     token = jwt.encode(payload, private_key, algorithm="RS256")
 
     response = jsonify({"message": "Login successful"})
-    response.set_cookie(
-        key="access_token",
-        value=token,
-        httponly=True,
-        secure=False, 
-        samesite="Lax",
-        max_age=3600,
-        path="/"
-    )
+    cookie_kwargs = {
+        "key": "access_token",
+        "value": token,
+        "httponly": True,
+        "secure": True,
+        "samesite": None,
+        "max_age": 3600,
+        "path": "/",
+    }
+
+    response.set_cookie(**cookie_kwargs)
 
     return response, 200
 
