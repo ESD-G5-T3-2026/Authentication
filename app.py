@@ -13,15 +13,16 @@ url = os.environ.get("SUPABASE_URL")
 key = os.environ.get("SUPABASE_KEY")
 port = os.environ.get("PORT")
 user = os.environ.get("USER")
+frontend_origins = ["http://localhost:5173"]
 
 supabase = create_client(url, key)
 
 app = Flask(__name__)
 CORS(
     app,
-    resources={r"/*": {"origins": "*"}},
+    resources={r"/*": {"origins": frontend_origins}},
     supports_credentials=True,
-    allow_headers=["Content-Type", "Authorization"],
+    allow_headers=["Content-Type", "Authorization", "X-Requested-With"],
     methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
 )
 
@@ -41,7 +42,7 @@ def login():
 
     result = (
         supabase.table("IAM")
-        .select("id,email,password")
+        .select("id,email,password,club_id")
         .eq("email", email)
         .limit(1)
         .execute()
@@ -70,12 +71,19 @@ def login():
 
     token = jwt.encode(payload, private_key, algorithm="RS256")
 
-    response = jsonify({"message": "Login successful"})
+    response = jsonify(
+        {
+            "message": "Login successful",
+            "user": {
+                "email": user_row.get("email"),
+                "club_id": user_row.get("club_id"),
+            },
+        }
+    )
     cookie_kwargs = {
         "key": "access_token",
         "value": token,
         "httponly": True,
-        "secure": True,
         "samesite": None,
         "max_age": 3600,
         "path": "/",
@@ -113,7 +121,14 @@ def check():
     except jwt.InvalidTokenError:
         return jsonify({"error": "invalid token"}), 401
 
-    return jsonify({"user": {"email": payload.get("sub")}}), 200
+    return jsonify(
+        {
+            "user": {
+                "email": payload.get("sub"),
+                "club_id": payload.get("club_id"),
+            }
+        }
+    ), 200
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=int(port or 5000))
