@@ -27,7 +27,7 @@ CORS(
 
 
 @app.route('/health')
-def check():
+def health():
     return 'Server is working'
 
 @app.route("/login", methods=["POST"])
@@ -89,6 +89,29 @@ def logout():
     response.delete_cookie("access_token", path="/")
 
     return response, 200
+
+@app.route("/check", methods=["GET"])
+def check():
+    token = request.cookies.get("access_token")
+    if not token:
+        return jsonify({"error": "unauthorized"}), 401
+
+    try:
+        with open("public.pem", "r") as f:
+            public_key = f.read()
+
+        payload = jwt.decode(
+            token,
+            public_key,
+            algorithms=["RS256"],
+            issuer=user,
+        )
+    except jwt.ExpiredSignatureError:
+        return jsonify({"error": "token expired"}), 401
+    except jwt.InvalidTokenError:
+        return jsonify({"error": "invalid token"}), 401
+
+    return jsonify({"user": {"email": payload.get("sub")}}), 200
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=int(port or 5000))
