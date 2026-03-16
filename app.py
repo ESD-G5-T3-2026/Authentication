@@ -3,6 +3,7 @@ import jwt
 import time
 import bcrypt
 
+from flasgger import Swagger
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from dotenv import load_dotenv
@@ -18,6 +19,7 @@ frontend_origins = ["http://localhost:6620"]
 supabase = create_client(url, key)
 
 app = Flask(__name__)
+swagger = Swagger(app)
 CORS(
     app,
     resources={r"/*": {"origins": frontend_origins}},
@@ -29,10 +31,55 @@ CORS(
 
 @app.route('/health')
 def health():
+    """
+    Health Check
+    ---
+    responses:
+      200:
+        description: Server is working
+        schema:
+          type: string
+    """
     return 'Server is working'
 
 @app.route("/login", methods=["POST"])
 def login():
+    """
+    User Login
+    ---
+    parameters:
+      - name: body
+        in: body
+        required: true
+        schema:
+          type: object
+          properties:
+            email:
+              type: string
+              required: true
+            password:
+              type: string
+              required: true
+    responses:
+      200:
+        description: Login successful, returns user info and sets access_token cookie
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+            user:
+              type: object
+              properties:
+                email:
+                  type: string
+                club_id:
+                  type: integer
+      400:
+        description: Missing email or password
+      401:
+        description: Invalid credentials
+    """
     data = request.get_json(silent=True) or {}
     email = (data.get("email") or "").strip().lower()
     password = data.get("password") or ""
@@ -97,6 +144,18 @@ def login():
 
 @app.route("/logout", methods=["POST"])
 def logout():
+    """
+    User Logout
+    ---
+    responses:
+      200:
+        description: Logout successful, access_token cookie deleted
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+    """
     response = jsonify({"message": "logged out"})
     response.delete_cookie("access_token", path="/", secure=True, samesite="None")
 
@@ -104,6 +163,30 @@ def logout():
 
 @app.route("/check", methods=["GET"])
 def check():
+    """
+    Check Authentication
+    ---
+    responses:
+      200:
+        description: Returns authenticated user info
+        schema:
+          type: object
+          properties:
+            user:
+              type: object
+              properties:
+                email:
+                  type: string
+                club_id:
+                  type: integer
+      401:
+        description: Unauthorized or token expired/invalid
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+    """
     token = request.cookies.get("access_token")
     if not token:
         return jsonify({"error": "unauthorized"}), 401

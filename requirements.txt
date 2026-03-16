@@ -5,3 +5,5 @@ bcrypt==5.0.0
 supabase==2.22.0
 supabase-auth==2.22.0
 supabase-functions==2.22.0
+flasgger==0.9.7.1
+mistune==3.2.0
