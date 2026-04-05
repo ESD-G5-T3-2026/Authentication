@@ -88,7 +88,7 @@ def login():
         return jsonify({"error": "email and password are required"}), 400
 
     result = (
-        supabase.table("IAM")
+        supabase.table("authentication")
         .select("id,email,password,club_id")
         .eq("email", email)
         .limit(1)
